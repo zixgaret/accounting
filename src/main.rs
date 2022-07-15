@@ -1,28 +1,26 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+#[allow(unused_imports)]
+use actix_web::{guard, web, App, HttpResponse, HttpServer, Responder};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
-        App::new()
-            .service(hello)
-            .service(echo)
-            .route("/hey", web::get().to(manual_hello))
+        App::new().service(
+            web::scope("/api")
+                // .guard(guard::Header("Header", "zix-agent"))
+                .route("/hello", web::to(hello))
+                .route("/echo", web::to(echo)),
+        )
     })
+    .workers(5)
     .bind(("127.0.0.1", 8080))?
     .run()
     .await
 }
 
-#[get("/")]
 async fn hello() -> impl Responder {
     HttpResponse::Ok().body("Hello, World!")
 }
 
-#[post("/echo")]
 async fn echo(req_body: String) -> impl Responder {
     HttpResponse::Ok().body(req_body)
-}
-
-async fn manual_hello() -> impl Responder {
-    HttpResponse::Ok().body("Hey there!")
 }
